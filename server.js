@@ -93,7 +93,7 @@ var server1 = http.createServer(function(req, res) {
 		return;
 
 	}
-	//3 delet
+	//3 delete Customer
 	if (pathname === "/removeInfo") {
 		customId = query["id"];
 		var flag = false;
@@ -135,24 +135,71 @@ var server1 = http.createServer(function(req, res) {
 					'content-type': 'application/json;chareset-utf-8;'
 				})
 				res.end(JSON.stringify({
-					code:1,
-					msg:"add customer failed."
+					code: 1,
+					msg: "add customer failed."
+				}));
+
+			}
+			var data = JSON.parse(str);
+			data["id"] = con.length === 0 ? 1 : parseFloat(con[con.length - 1]["id"]) + 1;
+			con.push(data);
+		res.writeHead(200, {
+			'content-type': 'application/json;chareset-utf-8;'
+		})
+		res.end(JSON.stringify({
+			code:0,
+			msg:"add customer successful"
+		}));
+
+		});
+		return;
+
+	}
+	//5 modify customer
+	if (pathname === "/updateInfo") {
+		str = '';
+		req.on("data", function(chunk) {
+			str += chunk;
+		});
+		req.on("end", function() {
+			if (str.length === 0) {
+				res.writeHead(200, {
+					'content-type': 'application/json;chareset-utf-8;'
+				})
+				res.end(JSON.stringify({
+					code: 1,
+					msg: "modify customer failed."
 				}));
 				return;
 			}
-			var data = JSON.parse(str);
-			data["id"]=con.length ===0?1:parseFloat(con[con.length-1]["id"])  +1;
-			con.push(data);
-			fs.writeFileSync(customPath, JSON.stringify(con),"utf-8");
-			res.end(JSON.stringify({
-					code:0,
-					msg:"add customer successful."
-				}));
+			var flag = false;
+			data = JSON.parse(str);
+			for (var i = 0; i < con.length; i++) {
+				if (con[i]["id"] == data["id"]) {
+					con[i] = data;
+					flag = true
+					break;
+				}
+			}
+			result.msg = "modify failed";
+			if (flag) {
+				fs.writeFileSync(customPath, Json.stringify(con), "utf-8");
+				result = {
+					code: 0,
+					msg: "modify successfulc"
+				}
+			}
+			res.writeHead(200, {
+				'content-type': 'application/json;chareset-utf-8;'
+			})
+			res.end(JSON.stringify(result));
 
 		});
+		return;
 	}
 
 });
+
 
 server1.listen(81, function() {
 	console.log("server is listened by 81 port");
